@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup, Tag
 from typing import List, Tuple
-from .models import NoteArticle
+try:
+    from .models import NoteArticle
+except ImportError:
+    from models import NoteArticle
 
 class ContentConverter(ABC):
     @abstractmethod
@@ -15,8 +18,14 @@ class NoteHtmlToMarkdownConverter(ContentConverter):
         markdown_blocks = []
         image_urls = []
 
+        # Eyecatch Image (Header Image)
+        if article.eyecatch_url:
+            image_urls.append(article.eyecatch_url)
+            markdown_blocks.append(f"![Header Image]({article.eyecatch_url})")
+
         # Title at the top
         markdown_blocks.append(f"# {article.name}")
+
 
         for element in soup.children:
             converted_text = self._parse_element(element, image_urls)

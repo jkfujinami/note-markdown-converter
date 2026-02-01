@@ -3,7 +3,10 @@ import os
 import urllib.request
 import hashlib
 from typing import List
-from .models import NoteArticle, ProcessingResult
+try:
+    from .models import NoteArticle, ProcessingResult
+except ImportError:
+    from models import NoteArticle, ProcessingResult
 
 class FileSaver:
     def __init__(self, base_output_dir: Path):

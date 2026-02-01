@@ -33,7 +33,7 @@ pip install -e .
 
 インストール後、`note-dl` コマンドまたは `python -m note_downloader.main` で実行できます。
 
-> **注意**: 現在のソースコードディレクトリ名が `note-markdown-converter` となっている場合、Pythonのインポートルールに従い `note_downloader` 等に変更する必要があるかもしれません。
+
 
 ### 基本的な使い方
 
@@ -68,7 +68,7 @@ downloads/
 ### プロジェクト構成
 
 ```text
-src/note_downloader/
+src/note-markdown-converter/
 ├── main.py       # エントリーポイント
 ├── cli.py        # (現在未使用) CLI引数処理用
 ├── converter.py  # HTML -> Markdown 変換ロジック
