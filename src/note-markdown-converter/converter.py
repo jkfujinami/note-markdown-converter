@@ -17,81 +17,101 @@ class NoteHtmlToMarkdownConverter(ContentConverter):
         soup = BeautifulSoup(article.body_html, 'html.parser')
         markdown_blocks = []
         image_urls = []
+        headers = [] # Tuples of (level, text, anchor_slug)
 
-        # Eyecatch Image (Header Image)
+        # Eyecatch Image
         if article.eyecatch_url:
             image_urls.append(article.eyecatch_url)
             markdown_blocks.append(f"![Header Image]({article.eyecatch_url})")
 
-        # Title at the top
+        # Title
         markdown_blocks.append(f"# {article.name}")
 
-
         for element in soup.children:
-            converted_text = self._parse_element(element, image_urls)
+            converted_text, detected_header = self._parse_element(element, image_urls)
             if converted_text:
                 markdown_blocks.append(converted_text)
+            if detected_header:
+                headers.append(detected_header)
 
-        # Append TOC if needed (logic can be refined)
-        # Note: The original script parsed <table-of-contents> tag.
+        # Generate TOC
+        toc_lines = []
+        if headers:
+            toc_lines.append("")
+            toc_lines.append("**目次**")
+            for level, text in headers:
+                indent = "  " * (level - 2) if level >= 2 else ""
+                # Simple TOC, no links for now as Markdown links require anchors which are tricky to guarantee across viewers
+                # But we can try just list items.
+                toc_lines.append(f"{indent}- {text}")
+            toc_lines.append("")
 
-        # Add generated TOC at the end if placeholder exists or standard practice
-        # For this implementation, let's keep it simple: body logic handles specific tags.
+        toc_content = "\n".join(toc_lines)
 
-        return "\n\n".join(markdown_blocks), image_urls
+        # Replace Placeholder
+        final_blocks = []
+        for block in markdown_blocks:
+            if block == "<!-- TOC_PLACEHOLDER -->":
+                if toc_content:
+                    final_blocks.append(toc_content)
+            else:
+                final_blocks.append(block)
 
-    def _parse_element(self, element, image_urls: List[str]) -> str:
+        return "\n\n".join(final_blocks), image_urls
+
+    def _parse_element(self, element, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
         if not isinstance(element, Tag):
-            return ""
+             # Handle plain text nodes if any (usually soup.children are tags but can be NavigableString)
+             return "", None
+
+        header_info = None
 
         if element.name == 'p':
             text = element.get_text(separator="\n").strip()
-            return text if text else ""
+            return (text if text else ""), None
 
         elif element.name == 'h2':
-            return f"## {element.get_text(strip=True)}"
+            text = element.get_text(strip=True)
+            header_info = (2, text)
+            return f"## {text}", header_info
 
         elif element.name == 'h3':
-            # Option to use Bold instead of Header to avoid folding issues as requested
-            # return f"**{element.get_text(strip=True)}**"
-            # Reverting to standard H3 as per user's last "it's fine" comment
-            return f"### {element.get_text(strip=True)}"
+            text = element.get_text(strip=True)
+            header_info = (3, text)
+            return f"### {text}", header_info
 
         elif element.name == 'ul':
             items = [f"* {li.get_text(separator=' ', strip=True)}" for li in element.find_all('li')]
-            return "\n".join(items)
+            return "\n".join(items), None
 
         elif element.name == 'ol':
+            # ... existing ol logic ...
             start = int(element.get('data-start', 1))
             items = [f"{i}. {li.get_text(separator=' ', strip=True)}" for i, li in enumerate(element.find_all('li'), start=start)]
-            return "\n".join(items)
+            return "\n".join(items), None
 
         elif element.name == 'pre':
-            # Check for code tag? usually note pre has code inside?
-            # Adjust based on observed schema
             code = element.get_text(strip=True)
-            return f"```\n{code}\n```"
+            return f"```\\n{code}\\n```", None
 
         elif element.name == 'figure':
-            return self._parse_figure(element, image_urls)
+            return self._parse_figure(element, image_urls), None
 
         elif element.name == 'hr':
-            return "---"
+            return "---", None
 
         elif element.name == 'table-of-contents':
-            # We can implement dynamic TOC generation here if we want to replace this placeholder later
-            # Or generate it right now using collected headers?
-            # For simplicity, returning a placeholder.
-            return "<!-- TOC -->" # Using HTML comment as placeholder or actual string
+            # Return placeholder for dynamic TOC insertion
+            return "<!-- TOC_PLACEHOLDER -->", None
 
-        return ""
+        return "", None
 
     def _parse_figure(self, element: Tag, image_urls: List[str]) -> str:
         # Blockquote
         blockquote = element.find('blockquote')
         if blockquote:
-            text = blockquote.get_text(separator="\n", strip=True)
-            return "\n".join([f"> {line}" for line in text.splitlines()])
+            text = blockquote.get_text(separator="\\n", strip=True)
+            return "\\n".join([f"> {line}" for line in text.splitlines()])
 
         # Image
         img = element.find('img')

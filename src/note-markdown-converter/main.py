@@ -15,12 +15,12 @@ except ImportError:
     from saver import FileSaver
 
 class NoteDownloader:
-    def __init__(self):
+    def __init__(self, output_dir: str = "downloads"):
         self.fetcher = NoteApiV3Fetcher()
         self.user_fetcher = NoteUserContentsFetcher()
         self.converter = NoteHtmlToMarkdownConverter()
         # Default output dir, can be configured
-        self.saver = FileSaver(Path.cwd() / "downloads")
+        self.saver = FileSaver(Path(output_dir))
 
     def process_target(self, target: str):
         # Check if target is user URL or ID
@@ -101,6 +101,7 @@ def main():
     parser.add_argument('--user', help='Process all notes for specific user ID')
     parser.add_argument('--id', help='Process specific note Key (ID)')
     parser.add_argument('--url', help='Process specific URL (Auto detect User or Note)')
+    parser.add_argument('-o', '--output', help='Output directory (default: downloads)', default='downloads')
 
     args = parser.parse_args()
 
@@ -108,7 +109,7 @@ def main():
         parser.print_help()
         return
 
-    downloader = NoteDownloader()
+    downloader = NoteDownloader(output_dir=args.output)
 
     # Priority: Explicit flags -> Positional args
 
