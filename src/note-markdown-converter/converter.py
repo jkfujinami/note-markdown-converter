@@ -20,23 +20,34 @@ from typing import Optional, List, Tuple
 
 # --- Tag Handlers ---
 
-def handle_paragraph(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_paragraph(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     text = element.get_text(separator="\n").strip()
     return (text if text else ""), None
 
-def handle_header(element: Tag, image_urls: List[str], level: int) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_header(
+    element: Tag, image_urls: List[str], level: int
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     text = element.get_text(strip=True)
     header_info = (level, text)
     return f"{'#' * level} {text}", header_info
 
-def handle_ul(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_ul(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     items = [
-        f"* {li.get_text(separator=' ', strip=True)}"
-        for li in element.find_all("li")
+        f"* {li.get_text(separator=' ', strip=True)}" for li in element.find_all("li")
     ]
     return "\n".join(items), None
 
-def handle_ol(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_ol(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     start = int(element.get("data-start", 1))
     items = [
         f"{i}. {li.get_text(separator=' ', strip=True)}"
@@ -44,17 +55,29 @@ def handle_ol(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[
     ]
     return "\n".join(items), None
 
-def handle_pre(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_pre(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     code = element.get_text(strip=True)
     return f"```\n{code}\n```", None
 
-def handle_hr(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_hr(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     return "---", None
 
-def handle_toc_placeholder(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_toc_placeholder(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     return "<!-- TOC_PLACEHOLDER -->", None
 
-def handle_figure(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tuple[int, str]]]:
+
+def handle_figure(
+    element: Tag, image_urls: List[str]
+) -> Tuple[str, Optional[Tuple[int, str]]]:
     # Blockquote
     blockquote = element.find("blockquote")
     if blockquote:
@@ -75,7 +98,7 @@ def handle_figure(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tu
     if element.get("embedded-service"):
         a_tag = element.find("a")
         if a_tag:
-             return f"[{a_tag.get_text(strip=True)}]({a_tag.get('href')})", None
+            return f"[{a_tag.get_text(strip=True)}]({a_tag.get('href')})", None
         iframe = element.find("iframe")
         if iframe:
             return f"Embed: {iframe.get('src')}", None
@@ -84,15 +107,15 @@ def handle_figure(element: Tag, image_urls: List[str]) -> Tuple[str, Optional[Tu
 
 
 TAG_HANDLERS = {
-    'p': handle_paragraph,
-    'h2': functools.partial(handle_header, level=2),
-    'h3': functools.partial(handle_header, level=3),
-    'ul': handle_ul,
-    'ol': handle_ol,
-    'pre': handle_pre,
-    'figure': handle_figure,
-    'hr': handle_hr,
-    'table-of-contents': handle_toc_placeholder,
+    "p": handle_paragraph,
+    "h2": functools.partial(handle_header, level=2),
+    "h3": functools.partial(handle_header, level=3),
+    "ul": handle_ul,
+    "ol": handle_ol,
+    "pre": handle_pre,
+    "figure": handle_figure,
+    "hr": handle_hr,
+    "table-of-contents": handle_toc_placeholder,
 }
 
 
