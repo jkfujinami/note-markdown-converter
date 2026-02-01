@@ -2,10 +2,11 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 from pathlib import Path
 
+
 @dataclass
 class NoteArticle:
     key: str
-    name: str # Title
+    name: str  # Title
     body_html: str
     slug: str
     publish_at: Optional[str] = None
@@ -14,9 +15,11 @@ class NoteArticle:
     tags: List[str] = field(default_factory=list)
     raw_data: Dict = field(default_factory=dict)
 
+
 @dataclass
 class NoteUserContentItem:
     """Represents a simplified article item from the user contents list API (v2)"""
+
     id: int
     key: str
     type: str
@@ -24,6 +27,7 @@ class NoteUserContentItem:
     name: str
     publishAt: str
     noteUrl: str
+
 
 @dataclass
 class ProcessingResult:

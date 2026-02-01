@@ -1,5 +1,6 @@
 from typing import Optional
 from pathlib import Path
+
 try:
     from .fetcher import NoteApiV3Fetcher, NoteUserContentsFetcher
     from .converter import NoteHtmlToMarkdownConverter
@@ -7,12 +8,14 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     # Add current directory to sys.path to resolve sibling modules
     sys.path.append(str(Path(__file__).parent))
 
     from fetcher import NoteApiV3Fetcher, NoteUserContentsFetcher
     from converter import NoteHtmlToMarkdownConverter
     from saver import FileSaver
+
 
 class NoteDownloader:
     def __init__(self, output_dir: str = "downloads"):
@@ -32,8 +35,8 @@ class NoteDownloader:
                 print(f"[{i}/{len(keys)}] Processing: {key}")
                 self._process_single_article(key)
         else:
-             # Assume single article
-             self._process_single_article(target)
+            # Assume single article
+            self._process_single_article(target)
 
     def _process_single_article(self, url_or_key: str):
         print(f"Starting process for: {url_or_key}")
@@ -55,19 +58,20 @@ class NoteDownloader:
 
     def _extract_user_id(self, target: str) -> Optional[str]:
         """Tries to extract user ID if target is a user profile URL.
-           Also returns target if it looks like a user ID (and not a note key).
+        Also returns target if it looks like a user ID (and not a note key).
         """
         import re
+
         # https://note.com/user_id
         # https://note.com/user_id/magazines/... (ignore for now, focus on user root)
 
         target = target.strip()
 
         # Exact match for User Profile URL
-        match = re.search(r'note\.com/([^/]+)/?$', target)
+        match = re.search(r"note\.com/([^/]+)/?$", target)
         if match:
-             uid = match.group(1)
-             if uid not in ('login', 'signup', 'hashtag'): # exclude system paths
+            uid = match.group(1)
+            if uid not in ("login", "signup", "hashtag"):  # exclude system paths
                 return uid
 
         # If just text (no url), how to distinguish UserID vs NoteKey?
@@ -82,8 +86,8 @@ class NoteDownloader:
         # User ID: fuji1080
 
         # Regex for Note Key (informal): ^n[a-z0-9]{12}$
-        if re.match(r'^n[a-z0-9]{12}$', target):
-            return None # It is a Note Key
+        if re.match(r"^n[a-z0-9]{12}$", target):
+            return None  # It is a Note Key
 
         # If it looks like a simpler ID (not Note Key), treat as User?
         # Risk: User ID "n123456789012"
@@ -92,16 +96,24 @@ class NoteDownloader:
 
         return None
 
+
 def main():
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description='Note.com Markdown Converter')
-    parser.add_argument('targets', nargs='*', help='URL or Key to process (auto-detect if no flag used)')
-    parser.add_argument('--user', help='Process all notes for specific user ID')
-    parser.add_argument('--id', help='Process specific note Key (ID)')
-    parser.add_argument('--url', help='Process specific URL (Auto detect User or Note)')
-    parser.add_argument('-o', '--output', help='Output directory (default: downloads)', default='downloads')
+    parser = argparse.ArgumentParser(description="Note.com Markdown Converter")
+    parser.add_argument(
+        "targets", nargs="*", help="URL or Key to process (auto-detect if no flag used)"
+    )
+    parser.add_argument("--user", help="Process all notes for specific user ID")
+    parser.add_argument("--id", help="Process specific note Key (ID)")
+    parser.add_argument("--url", help="Process specific URL (Auto detect User or Note)")
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output directory (default: downloads)",
+        default="downloads",
+    )
 
     args = parser.parse_args()
 
@@ -131,6 +143,7 @@ def main():
     # Process positional arguments (backwards compatibility / simple usage)
     for target in args.targets:
         downloader.process_target(target)
+
 
 if __name__ == "__main__":
     main()

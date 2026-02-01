@@ -3,18 +3,24 @@ import os
 import urllib.request
 import hashlib
 from typing import List
+
 try:
     from .models import NoteArticle, ProcessingResult
 except ImportError:
     from models import NoteArticle, ProcessingResult
 
+
 class FileSaver:
     def __init__(self, base_output_dir: Path):
         self.base_output_dir = Path(base_output_dir)
 
-    def save(self, article: NoteArticle, markdown_content: str, image_urls: List[str]) -> ProcessingResult:
+    def save(
+        self, article: NoteArticle, markdown_content: str, image_urls: List[str]
+    ) -> ProcessingResult:
         # Sanitize title for directory name
-        safe_title = "".join([c for c in article.name if c.isalnum() or c in (' ', '-', '_')]).strip()
+        safe_title = "".join(
+            [c for c in article.name if c.isalnum() or c in (" ", "-", "_")]
+        ).strip()
         if not safe_title:
             safe_title = article.key
 
@@ -51,21 +57,21 @@ class FileSaver:
             article=article,
             markdown_content=final_markdown,
             saved_path=md_path,
-            image_paths=saved_images
+            image_paths=saved_images,
         )
 
     def _download_image(self, url: str, save_dir: Path) -> str:
         try:
             url_hash = hashlib.md5(url.encode()).hexdigest()
-            ext = os.path.splitext(url.split('?')[0])[1] or '.jpg'
+            ext = os.path.splitext(url.split("?")[0])[1] or ".jpg"
             filename = f"{url_hash}{ext}"
             save_path = save_dir / filename
 
             if not save_path.exists():
                 print(f"Downloading: {url}")
-                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
                 with urllib.request.urlopen(req) as response:
-                    with open(save_path, 'wb') as f:
+                    with open(save_path, "wb") as f:
                         f.write(response.read())
 
             return filename
